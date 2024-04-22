@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">CoroutinesExample</string>
+    <string name="hello_world">Hello world, %1$s</string>
+    <string name="login_one">Longin - one coroutine</string>
+    <string name="login_two">Longin - two coroutines</string>
+    <string name="login_three">Longin - three view model</string>
+    <string name="you">you</string>
+    <string name="todo">todo</string>
+</resources>
