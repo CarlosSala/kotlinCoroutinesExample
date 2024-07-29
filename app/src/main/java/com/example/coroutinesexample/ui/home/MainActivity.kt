@@ -28,23 +28,6 @@ import kotlinx.coroutines.withContext
 import retrofit2.Response
 
 
-// library ktx has coroutines with lifecycle, lifecycle to activity
-
-// GlobalScope, for life cycle of app, it is run during  all time life of app
-// lifecycleScope, for activity level, this coroutine share life cycle with the activity,
-// for example firstCoroutine()
-// viewmodelScope, live during activity life
-
-// builder to create coroutines
-// launch
-// withContext = it is a builder, who modifies context for the line code wished
-
-// Dispatchers:
-// without one = MAIN
-// MAIN = UI
-// I0 = Retrofit, data base , wait response, etc (block task)
-// Default = process information of intensive cpu use
-
 class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel: FirstAppViewModel
@@ -73,11 +56,11 @@ class MainActivity : AppCompatActivity() {
         binding.etUsername.onTextChanged { "The text contains $it".also(::println) }
 
         // subscribe liveData
-        viewModel.loginResult.observe(this) { success ->
+        viewModel.loginResult.observe(this) { result ->
 
-            toast(if (success == true) "Success" else "Failure")
+            toast(if (result == true) "Success" else "Failure")
 
-            if (success == true) {
+            if (result == true) {
 
                 val intent = Intent(this@MainActivity, ResultActivity::class.java)
                 intent.putExtra("EXTRA_NAME", etUser)
@@ -102,16 +85,16 @@ class MainActivity : AppCompatActivity() {
 
                 Log.i("current thread", Thread.currentThread().name.toEditable().toString())
 
-                val success = withContext(Dispatchers.IO) {
+                val result = withContext(Dispatchers.IO) {
 
                     Log.i("current thread", Thread.currentThread().name.toEditable().toString())
 
                     validateLogin(etUser, etPass)
                 }
 
-                toast(if (success) "Success login" else "Failure login")
+                toast(if (result) "Success login" else "Failure login")
 
-                if (success) {
+                if (result) {
 
                     val intent = Intent(this@MainActivity, ResultActivity::class.java)
                     intent.putExtra("EXTRA_NAME", etUser)
@@ -128,17 +111,17 @@ class MainActivity : AppCompatActivity() {
 
             lifecycleScope.launch {
 
-                val successOne = async(Dispatchers.IO) {
+                val resultOne = async(Dispatchers.IO) {
                     validateLogin(etUser, etPass)
                 }
 
-                val successTwo = async(Dispatchers.IO) {
+                val resultTwo = async(Dispatchers.IO) {
                     validateLogin(etUser, etPass)
                 }
 
-                toast(if (successOne.await() && successTwo.await()) "Success login" else "Failure login")
+                toast(if (resultOne.await() && resultTwo.await()) "Success login" else "Failure login")
 
-                if (successOne.await() && successTwo.await()) {
+                if (resultOne.await() && resultTwo.await()) {
 
                     val intent = Intent(this@MainActivity, ResultActivity::class.java)
                     intent.putExtra("EXTRA_NAME", etUser)
