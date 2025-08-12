@@ -1,6 +1,7 @@
 package com.example.coroutinesexample.ui.common
 
 import android.app.Activity
+import android.content.Context
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.EditText
@@ -11,9 +12,16 @@ import com.example.coroutinesexample.R
 
 
 // test in an activity
+// more generic and can use en more sites like Context: Activity, Service, Application, etc.
+fun Context.customToast(message: String) {
+    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+}
+
+// Activity is a sub class of Context
 fun Activity.myToast(text: String, length: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this, text, length).show()
 }
+
 
 // test in an activity, using Glide library
 fun ImageView.load(url: Any, width: Int, height: Int) {
@@ -46,6 +54,7 @@ fun EditText.onTextChanged(listener: (String) -> Unit) {
     })
 }
 
+// convert string to Editable
 fun String.toEditable(): Editable = Editable.Factory.getInstance().newEditable(this)
 
 // use any anywhere

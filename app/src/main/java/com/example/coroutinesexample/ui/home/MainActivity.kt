@@ -1,10 +1,8 @@
 package com.example.coroutinesexample.ui.home
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -18,6 +16,7 @@ import com.example.coroutinesexample.ui.common.load
 import com.example.coroutinesexample.ui.common.myToast
 import com.example.coroutinesexample.ui.common.onTextChanged
 import com.example.coroutinesexample.ui.common.toEditable
+import com.example.coroutinesexample.ui.common.customToast
 import com.example.coroutinesexample.ui.detail.ResultActivity
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -32,10 +31,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel: FirstAppViewModel
     private lateinit var binding: ActivityMainBinding
-
     private var etUser: String = "et user"
     private var etPass: String = "et pass"
-
     private lateinit var retrofit: ApiService
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,32 +47,44 @@ class MainActivity : AppCompatActivity() {
 
         // 3 utilities form extensions functions
         myToast("Custom toast for extensions functions")
-
         binding.iv.load(R.drawable.male_symbol, 200, 200)
-
         binding.etUsername.onTextChanged { "The text contains $it".also(::println) }
 
-        // subscribe liveData
+        // subscribe liveData for login three
         viewModel.loginResult.observe(this) { result ->
 
-            toast(if (result == true) "Success" else "Failure")
-
+            customToast(if (result == true) "Success" else "Failure")
             if (result == true) {
-
                 val intent = Intent(this@MainActivity, ResultActivity::class.java)
                 intent.putExtra("EXTRA_NAME", etUser)
                 startActivity(intent)
             }
         }
 
+        firstCoroutine()
         initListener()
         retrofitCoroutine()
-        firstCoroutine()
+    }
+
+    private fun firstCoroutine() {
+
+        // GlobalScope.launch(Dispatchers.Main) {
+        lifecycleScope.launch {
+
+            // withContext is a suspend function
+            val result = withContext(Dispatchers.IO) {
+                DataProvider.doHeavyTask()
+            }
+            // println(result)
+            // myToast(result)
+            binding.etPassword.hint = result
+
+        }
     }
 
     private fun initListener() {
 
-        // one coroutine
+        // login one coroutine
         binding.btnLogin.setOnClickListener {
 
             etUser = binding.etUsername.text.toString()
@@ -85,17 +94,14 @@ class MainActivity : AppCompatActivity() {
 
                 Log.i("current thread", Thread.currentThread().name.toEditable().toString())
 
-                val result = withContext(Dispatchers.IO) {
-
+                val result = withContext(context = Dispatchers.IO) {
                     Log.i("current thread", Thread.currentThread().name.toEditable().toString())
-
-                    validateLogin(etUser, etPass)
+                    validateLogin(user = etUser, password = etPass)
                 }
 
-                toast(if (result) "Success login" else "Failure login")
+                customToast(if (result) "Success login" else "Failure login")
 
                 if (result) {
-
                     val intent = Intent(this@MainActivity, ResultActivity::class.java)
                     intent.putExtra("EXTRA_NAME", etUser)
                     // startActivity(intent)
@@ -103,7 +109,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // parallels coroutine
+        // login two coroutines, parallels coroutine
         binding.btnLogin1.setOnClickListener {
 
             etUser = binding.etUsername.text.toString()
@@ -111,18 +117,17 @@ class MainActivity : AppCompatActivity() {
 
             lifecycleScope.launch {
 
-                val resultOne = async(Dispatchers.IO) {
+                val resultOne = async(context = Dispatchers.IO) {
                     validateLogin(etUser, etPass)
                 }
 
-                val resultTwo = async(Dispatchers.IO) {
+                val resultTwo = async(context = Dispatchers.IO) {
                     validateLogin(etUser, etPass)
                 }
 
-                toast(if (resultOne.await() && resultTwo.await()) "Success login" else "Failure login")
+                customToast(if (resultOne.await() && resultTwo.await()) "Success login" else "Failure login")
 
                 if (resultOne.await() && resultTwo.await()) {
-
                     val intent = Intent(this@MainActivity, ResultActivity::class.java)
                     intent.putExtra("EXTRA_NAME", etUser)
                     startActivity(intent)
@@ -130,7 +135,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // coroutine in viewModel
+        // login three, coroutine in viewModel
         binding.btnLogin2.setOnClickListener {
 
             etUser = binding.etUsername.text.toString()
@@ -143,33 +148,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun Context.toast(message: String) {
-
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
-
     private fun validateLogin(user: String, password: String): Boolean {
 
         // emulate delay of server
         Thread.sleep(2000)
         return user.isNotEmpty() && password.isNotEmpty()
-    }
-
-    private fun firstCoroutine() {
-
-        // GlobalScope.launch(Dispatchers.Main) {
-        lifecycleScope.launch {
-
-            // withContext is a suspend function
-            val result = withContext(Dispatchers.IO) {
-
-                DataProvider.doHeavyTask()
-            }
-            // println(result)
-            // myToast(result)
-            binding.etPassword.hint = result
-
-        }
     }
 
     private fun retrofitCoroutine() {
@@ -184,12 +167,9 @@ class MainActivity : AppCompatActivity() {
 
                 // return main thread
                 withContext(Dispatchers.Main) {
-
                     val message = "Response from sever is: ${response.isSuccessful}"
                     binding.etUsername.hint = message
-
                     // toast(message)
-
                     myToast(message)
                 }
             }

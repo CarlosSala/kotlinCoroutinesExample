@@ -20,13 +20,9 @@ class FirstAppViewModel : ViewModel() {
     fun onSubmitClicked(user: String, pass: String) {
 
         viewModelScope.launch {
-
             Log.i("current thread", Thread.currentThread().name.toEditable().toString())
-
-            _loginResult.value = withContext(Dispatchers.IO) {
-
+            _loginResult.value = withContext(context = Dispatchers.IO) {
                 Log.i("current thread", Thread.currentThread().name.toEditable().toString())
-
                 validateLogin(user, pass)
             }
         }
