@@ -2,38 +2,24 @@ package com.example.coroutinesexample.ui.home
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.example.coroutinesexample.R
-import com.example.coroutinesexample.data.model.SuperheroDataResponse
-import com.example.coroutinesexample.data.network.ApiService
-import com.example.coroutinesexample.data.network.RetrofitHelper
-import com.example.coroutinesexample.data.repository.DataProvider
 import com.example.coroutinesexample.databinding.ActivityMainBinding
-import com.example.coroutinesexample.ui.common.load
-import com.example.coroutinesexample.ui.common.myToast
-import com.example.coroutinesexample.ui.common.onTextChanged
-import com.example.coroutinesexample.ui.common.toEditable
 import com.example.coroutinesexample.ui.common.customToast
 import com.example.coroutinesexample.ui.detail.ResultActivity
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import retrofit2.Response
 
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var viewModel: FirstAppViewModel
+    private lateinit var viewModel: MainViewModel
     private lateinit var binding: ActivityMainBinding
     private var etUser: String = "et user"
     private var etPass: String = "et pass"
-    private lateinit var retrofit: ApiService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,45 +27,60 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel = ViewModelProvider(this)[FirstAppViewModel::class.java]
-
-        retrofit = RetrofitHelper.getInstanceRetrofit()
+        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
         // 3 utilities form extensions functions
-        myToast("Custom toast for extensions functions")
-        binding.iv.load(R.drawable.male_symbol, 200, 200)
-        binding.etUsername.onTextChanged { "The text contains $it".also(::println) }
+        // myToast("Custom toast for extensions functions")
+        //  binding.iv.load(R.drawable.male_symbol, 200, 200)
+        //  binding.etUsername.onTextChanged { "The text contains $it".also(::println) }
 
-        // subscribe liveData for login three
-        viewModel.loginResult.observe(this) { result ->
-
-            customToast(if (result == true) "Success" else "Failure")
-            if (result == true) {
-                val intent = Intent(this@MainActivity, ResultActivity::class.java)
-                intent.putExtra("EXTRA_NAME", etUser)
-                startActivity(intent)
-            }
-        }
-
-        firstCoroutine()
-        initListener()
-        retrofitCoroutine()
-    }
-
-    private fun firstCoroutine() {
-
-        // GlobalScope.launch(Dispatchers.Main) {
+        // those two flows are collected since the app is started
         lifecycleScope.launch {
-
-            // withContext is a suspend function
-            val result = withContext(Dispatchers.IO) {
-                DataProvider.doHeavyTask()
+            // repeatOnLifecycle launches the block in a new coroutine every time the
+            // lifecycle is in the STARTED state (or above) and cancels it when it's STOPPED.
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.heavyTask.collect { result ->
+                    if (result != null) {
+                        binding.tvTask.text = getString(R.string.heavy_task, result)
+                    }
+                }
             }
-            // println(result)
-            // myToast(result)
-            binding.etPassword.hint = result
-
         }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.superhero.collect { result ->
+                    if (result != null) {
+                        binding.tvServer.text = getString(R.string.server_response, result)
+
+                    }
+                }
+            }
+        }
+
+        // this flow is collected only when login is successful
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.loginEvent.collect { result ->
+                    if (result != null) {
+                        customToast(if (result) "Success" else "Failure")
+                        binding.etUsername.setText("")
+                        binding.etPassword.setText("")
+                    }
+                    if (result == true) {
+                        val intent = Intent(this@MainActivity, ResultActivity::class.java)
+                        intent.putExtra("EXTRA_NAME", etUser)
+                        startActivity(intent)
+                    }
+                }
+            }
+        }
+
+        // init ui listener
+        initListener()
+
+        viewModel.heavyTask()
+        viewModel.getSuperhero("superman")
     }
 
     private fun initListener() {
@@ -90,26 +91,11 @@ class MainActivity : AppCompatActivity() {
             etUser = binding.etUsername.text.toString()
             etPass = binding.etPassword.text.toString()
 
-            lifecycleScope.launch {
-
-                Log.i("current thread", Thread.currentThread().name.toEditable().toString())
-
-                val result = withContext(context = Dispatchers.IO) {
-                    Log.i("current thread", Thread.currentThread().name.toEditable().toString())
-                    validateLogin(user = etUser, password = etPass)
-                }
-
-                customToast(if (result) "Success login" else "Failure login")
-
-                if (result) {
-                    val intent = Intent(this@MainActivity, ResultActivity::class.java)
-                    intent.putExtra("EXTRA_NAME", etUser)
-                    // startActivity(intent)
-                }
-            }
+            // Log.i("current thread", Thread.currentThread().name.toEditable().toString())
+            viewModel.validateLogin(user = etUser, pass = etPass)
         }
 
-        // login two coroutines, parallels coroutine
+        /*// login two coroutines, parallels coroutine
         binding.btnLogin1.setOnClickListener {
 
             etUser = binding.etUsername.text.toString()
@@ -118,11 +104,11 @@ class MainActivity : AppCompatActivity() {
             lifecycleScope.launch {
 
                 val resultOne = async(context = Dispatchers.IO) {
-                    validateLogin(etUser, etPass)
+                    viewModel.validateLogin(etUser, etPass)
                 }
 
                 val resultTwo = async(context = Dispatchers.IO) {
-                    validateLogin(etUser, etPass)
+                    viewModel.validateLogin(etUser, etPass)
                 }
 
                 customToast(if (resultOne.await() && resultTwo.await()) "Success login" else "Failure login")
@@ -133,53 +119,14 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                 }
             }
-        }
-
-        // login three, coroutine in viewModel
-        binding.btnLogin2.setOnClickListener {
-
-            etUser = binding.etUsername.text.toString()
-            etPass = binding.etPassword.text.toString()
-
-            // val successThree = vm.onSubmitClicked(etUser, etPass)
-            // toast(if (successThree) "Success" else "Failure")
-
-            viewModel.onSubmitClicked(etUser, etPass)
-        }
+        }*/
     }
 
-    private fun validateLogin(user: String, password: String): Boolean {
 
-        // emulate delay of server
-        Thread.sleep(2000)
-        return user.isNotEmpty() && password.isNotEmpty()
-    }
+    /*    fun waitForCoroutines() {
+            lifecycleScope.launch(Dispatchers.IO) {
 
-    private fun retrofitCoroutine() {
-
-        lifecycleScope.launch(Dispatchers.IO) {
-
-            val response: Response<SuperheroDataResponse> =
-                // getSuperHeroes is a suspend function
-                retrofit.getSuperHeroes("amor")
-
-            if (response.isSuccessful) {
-
-                // return main thread
-                withContext(Dispatchers.Main) {
-                    val message = "Response from sever is: ${response.isSuccessful}"
-                    binding.etUsername.hint = message
-                    // toast(message)
-                    myToast(message)
-                }
-            }
-        }
-    }
-
-    fun waitForCoroutines() {
-        lifecycleScope.launch(Dispatchers.IO) {
-
-            /*
+                *//*
                     val deferred1 = async { retrofit.getSuperHeroes("a") }
                     val deferred2 = async { retrofit.getSuperHeroes("b") }
                     val deferred3 = async { retrofit.getSuperHeroes("c") }
@@ -189,9 +136,9 @@ class MainActivity : AppCompatActivity() {
                     val response2 = deferred2.await()
                     val response3 = deferred3.await()
                     val response4 = deferred4.await()
-        */
+        *//*
 
-            val deferreds: List<Deferred<Response<SuperheroDataResponse>>> = listOf(
+            val deferreds: List<Deferred<Response<SuperheroDataResponseDto>>> = listOf(
                 async { retrofit.getSuperHeroes("batman") },
                 async { retrofit.getSuperHeroes("super") },
                 async { retrofit.getSuperHeroes("a") },
@@ -200,7 +147,7 @@ class MainActivity : AppCompatActivity() {
             // wait for all request
             val response = deferreds.awaitAll()
         }
-    }
+    }*/
 
 }
 

@@ -4,6 +4,6 @@ object DataProvider {
 
     fun doHeavyTask(): String {
         Thread.sleep(3000)
-        return "From doHeavyTask in data provider"
+        return "Heavy task done"
     }
 }

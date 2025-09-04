@@ -6,4 +6,6 @@
     <string name="login_three">Longin - three view model</string>
     <string name="you">you</string>
     <string name="todo">todo</string>
+    <string name="server_response">Status server response: %1$s</string>
+    <string name="heavy_task">Heavy task: %1$s</string>
 </resources>

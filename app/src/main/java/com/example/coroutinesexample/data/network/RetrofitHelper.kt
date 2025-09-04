@@ -12,8 +12,8 @@ object RetrofitHelper {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
-    fun getInstanceRetrofit(): ApiService {
+    fun getInstanceRetrofit(): SuperHeroApiClient {
 
-        return retrofit.create(ApiService::class.java)
+        return retrofit.create(SuperHeroApiClient::class.java)
     }
 }
