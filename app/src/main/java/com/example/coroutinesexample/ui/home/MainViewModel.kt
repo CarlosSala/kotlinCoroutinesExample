@@ -14,30 +14,32 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 const val TAG = "MainViewModel"
+
+data class UiState(
+    val loading: Boolean = false,
+    val heavyTask: String? = null,
+    val responseServer: String? = null
+)
 
 // the viewModel only must be informed about what passed
 class MainViewModel : ViewModel() {
 
     private val getServerResponse = GetServerResponse()
 
+    private val _uiState = MutableStateFlow(UiState())
+    val uiState: StateFlow<UiState> get() = _uiState
+
     // sharedFlow is a hot flow that can be shared among multiple consumers
     // and is oriented to events
     private val _loginEvent = MutableSharedFlow<Boolean>()
     val loginEvent: SharedFlow<Boolean?> get() = _loginEvent
-
-    private val _heavyTask = MutableStateFlow<String?>(null)
-    val heavyTask: StateFlow<String?> get() = _heavyTask
-
-    private val _superhero = MutableStateFlow<String?>(null)
-    val superhero: StateFlow<String?> get() = _superhero
-
     private val _loginAsyncEvent = MutableSharedFlow<Boolean>()
     val loginAsyncEvent: SharedFlow<Boolean?> get() = _loginAsyncEvent
-
     private val _getSeveralSuperheroes = MutableSharedFlow<String?>()
     val getSeveralSuperheroes: SharedFlow<String?> get() = _getSeveralSuperheroes
 
@@ -52,7 +54,7 @@ class MainViewModel : ViewModel() {
                 null
                 Log.e(TAG, "Error in doSomething: ", e)
             }
-            _heavyTask.value = resultHeavyTask.toString()
+            _uiState.update { it.copy(heavyTask = resultHeavyTask.toString()) }
         }
     }
 
@@ -65,7 +67,9 @@ class MainViewModel : ViewModel() {
             } catch (e: Exception) {
                 null
             }
-            _superhero.value = response
+            _uiState.update {
+                it.copy(responseServer = response.toString())
+            }
         }
     }
 

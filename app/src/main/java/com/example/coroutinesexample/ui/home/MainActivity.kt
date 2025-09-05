@@ -33,26 +33,16 @@ class MainActivity : AppCompatActivity() {
         // extension function to load image with glide
         binding.iv.load(R.drawable.male_symbol, 200, 200)
 
-        // those two flows are collected since the app is started
+        // these flow is collected since the app is started
         lifecycleScope.launch {
             // repeatOnLifecycle launches the block in a new coroutine every time the
             // lifecycle is in the STARTED state (or above) and cancels it when it's STOPPED.
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.heavyTask.collect { result ->
-                    if (result != null) {
-                        binding.tvTask.text = getString(R.string.heavy_task, result)
-                    }
-                }
-            }
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.superhero.collect { result ->
-                    if (result != null) {
-                        binding.tvServer.text = getString(R.string.server_response, result)
-
-                    }
+                viewModel.uiState.collect { uiState ->
+                    binding.tvTask.text =
+                        getString(R.string.heavy_task, uiState.heavyTask)
+                    binding.tvServer.text =
+                        getString(R.string.server_response, uiState.responseServer)
                 }
             }
         }
