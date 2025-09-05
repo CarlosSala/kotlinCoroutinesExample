@@ -8,4 +8,6 @@
     <string name="todo">todo</string>
     <string name="server_response">Status server response: %1$s</string>
     <string name="heavy_task">Heavy task: %1$s</string>
+    <string name="server_test">server test</string>
+    <string name="heavy_task_test">heavy task test</string>
 </resources>

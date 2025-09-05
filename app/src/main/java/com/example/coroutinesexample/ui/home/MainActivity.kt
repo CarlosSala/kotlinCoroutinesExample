@@ -10,6 +10,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.example.coroutinesexample.R
 import com.example.coroutinesexample.databinding.ActivityMainBinding
 import com.example.coroutinesexample.ui.common.customToast
+import com.example.coroutinesexample.ui.common.load
 import com.example.coroutinesexample.ui.detail.ResultActivity
 import kotlinx.coroutines.launch
 
@@ -29,10 +30,8 @@ class MainActivity : AppCompatActivity() {
 
         viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
-        // 3 utilities form extensions functions
-        // myToast("Custom toast for extensions functions")
-        //  binding.iv.load(R.drawable.male_symbol, 200, 200)
-        //  binding.etUsername.onTextChanged { "The text contains $it".also(::println) }
+        // extension function to load image with glide
+        binding.iv.load(R.drawable.male_symbol, 200, 200)
 
         // those two flows are collected since the app is started
         lifecycleScope.launch {
