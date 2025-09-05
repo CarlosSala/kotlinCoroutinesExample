@@ -13,7 +13,6 @@ object RetrofitHelper {
         .build()
 
     fun getInstanceRetrofit(): SuperHeroApiClient {
-
         return retrofit.create(SuperHeroApiClient::class.java)
     }
 }

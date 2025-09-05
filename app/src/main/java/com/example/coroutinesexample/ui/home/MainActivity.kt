@@ -76,6 +76,33 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.loginAsyncEvent.collect { result ->
+                    if (result != null) {
+                        customToast(if (result) "Success" else "Failure")
+                        binding.etUsername.setText("")
+                        binding.etPassword.setText("")
+                    }
+                    if (result == true) {
+                        val intent = Intent(this@MainActivity, ResultActivity::class.java)
+                        intent.putExtra("EXTRA_NAME", etUser)
+                        startActivity(intent)
+                    }
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.getSeveralSuperheroes.collect { result ->
+                    if (result != null) {
+                        customToast(result)
+                    }
+                }
+            }
+        }
+
         // init ui listener
         initListener()
 
@@ -95,59 +122,18 @@ class MainActivity : AppCompatActivity() {
             viewModel.validateLogin(user = etUser, pass = etPass)
         }
 
-        /*// login two coroutines, parallels coroutine
+        // login two coroutines, parallels coroutine
         binding.btnLogin1.setOnClickListener {
 
             etUser = binding.etUsername.text.toString()
             etPass = binding.etPassword.text.toString()
 
-            lifecycleScope.launch {
-
-                val resultOne = async(context = Dispatchers.IO) {
-                    viewModel.validateLogin(etUser, etPass)
-                }
-
-                val resultTwo = async(context = Dispatchers.IO) {
-                    viewModel.validateLogin(etUser, etPass)
-                }
-
-                customToast(if (resultOne.await() && resultTwo.await()) "Success login" else "Failure login")
-
-                if (resultOne.await() && resultTwo.await()) {
-                    val intent = Intent(this@MainActivity, ResultActivity::class.java)
-                    intent.putExtra("EXTRA_NAME", etUser)
-                    startActivity(intent)
-                }
-            }
-        }*/
-    }
-
-
-    /*    fun waitForCoroutines() {
-            lifecycleScope.launch(Dispatchers.IO) {
-
-                *//*
-                    val deferred1 = async { retrofit.getSuperHeroes("a") }
-                    val deferred2 = async { retrofit.getSuperHeroes("b") }
-                    val deferred3 = async { retrofit.getSuperHeroes("c") }
-                    val deferred4 = async { retrofit.getSuperHeroes("d") }
-
-                    val response1 = deferred1.await()
-                    val response2 = deferred2.await()
-                    val response3 = deferred3.await()
-                    val response4 = deferred4.await()
-        *//*
-
-            val deferreds: List<Deferred<Response<SuperheroDataResponseDto>>> = listOf(
-                async { retrofit.getSuperHeroes("batman") },
-                async { retrofit.getSuperHeroes("super") },
-                async { retrofit.getSuperHeroes("a") },
-                async { retrofit.getSuperHeroes("man") })
-
-            // wait for all request
-            val response = deferreds.awaitAll()
+            viewModel.validateAsyncLogin(user = etUser, pass = etPass)
         }
-    }*/
 
+        binding.btnLogin2.setOnClickListener {
+            viewModel.getSeveralSuperheroes()
+        }
+    }
 }
 
