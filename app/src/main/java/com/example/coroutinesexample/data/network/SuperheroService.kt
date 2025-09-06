@@ -1,7 +1,6 @@
-package com.example.coroutinesexample.data
+package com.example.coroutinesexample.data.network
 
 import com.example.coroutinesexample.data.model.SuperheroDataResponseDto
-import com.example.coroutinesexample.data.network.RetrofitHelper
 
 class SuperheroService {
 

@@ -1,13 +1,13 @@
 package com.example.coroutinesexample.domain.usecases
 
 import com.example.coroutinesexample.data.model.SuperheroDataResponseDto
-import com.example.coroutinesexample.data.repository.Repository
+import com.example.coroutinesexample.data.repository.TaskRepositoryImpl
 
-class GetServerResponse() {
+class RemoteTaskUseCase() {
 
-    private val repository = Repository()
+    private val taskRepositoryImpl = TaskRepositoryImpl()
 
     suspend operator fun invoke(superhero: String): SuperheroDataResponseDto {
-        return repository.getSuperhero(superhero)
+        return taskRepositoryImpl.getSuperhero(superhero)
     }
 }

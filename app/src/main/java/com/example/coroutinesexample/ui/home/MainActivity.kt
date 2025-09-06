@@ -95,8 +95,8 @@ class MainActivity : AppCompatActivity() {
         // init ui listener
         initListener()
 
-        viewModel.heavyTask()
-        viewModel.getSuperhero("superman")
+        viewModel.localTask()
+        viewModel.remoteTask("superman")
     }
 
     private fun initListener() {

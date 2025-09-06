@@ -5,7 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.coroutinesexample.data.model.SuperheroDataResponseDto
 import com.example.coroutinesexample.data.repository.DataProvider
-import com.example.coroutinesexample.domain.usecases.GetServerResponse
+import com.example.coroutinesexample.domain.usecases.LocalTaskUseCase
+import com.example.coroutinesexample.domain.usecases.RemoteTaskUseCase
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -29,7 +30,8 @@ data class UiState(
 // the viewModel only must be informed about what passed
 class MainViewModel : ViewModel() {
 
-    private val getServerResponse = GetServerResponse()
+    private val remoteTaskUseCase = RemoteTaskUseCase()
+    private val localTaskUseCase = LocalTaskUseCase()
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> get() = _uiState
@@ -43,11 +45,11 @@ class MainViewModel : ViewModel() {
     private val _getSeveralSuperheroes = MutableSharedFlow<String?>()
     val getSeveralSuperheroes: SharedFlow<String?> get() = _getSeveralSuperheroes
 
-    fun heavyTask() {
+    fun localTask() {
         viewModelScope.launch {
             val resultHeavyTask = try {
                 withContext(Dispatchers.IO) {
-                    DataProvider.doHeavyTask()
+                    localTaskUseCase.localTask()
                 }
             } catch (e: Exception) {
                 // Handle error, maybe update another StateFlow for error messages
@@ -58,11 +60,11 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun getSuperhero(name: String) {
+    fun remoteTask(name: String) {
         viewModelScope.launch {
             val response = try {
                 withContext(Dispatchers.IO) {
-                    getServerResponse(name).response
+                    remoteTaskUseCase(name).response
                 }
             } catch (e: Exception) {
                 null
@@ -112,9 +114,9 @@ class MainViewModel : ViewModel() {
                         val response2 = deferred2.await() */
 
                     val deferreds: List<Deferred<SuperheroDataResponseDto>> = listOf(
-                        async { getServerResponse("batman") },
-                        async { getServerResponse("green") },
-                        async { getServerResponse("flash") }
+                        async { remoteTaskUseCase("batman") },
+                        async { remoteTaskUseCase("green") },
+                        async { remoteTaskUseCase("flash") }
                     )
 
                     // wait for all request
