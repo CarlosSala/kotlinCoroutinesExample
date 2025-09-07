@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.coroutinesexample.data.model.SuperheroDataResponseDto
-import com.example.coroutinesexample.data.repository.DataProvider
 import com.example.coroutinesexample.domain.usecases.LocalTaskUseCase
 import com.example.coroutinesexample.domain.usecases.RemoteTaskUseCase
 import kotlinx.coroutines.Deferred
