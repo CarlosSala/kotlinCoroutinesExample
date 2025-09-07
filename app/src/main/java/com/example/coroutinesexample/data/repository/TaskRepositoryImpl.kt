@@ -2,7 +2,7 @@ package com.example.coroutinesexample.data.repository
 
 import com.example.coroutinesexample.data.datasource.local.DeviceLocalTaskDataSource
 import com.example.coroutinesexample.data.datasource.remote.SuperheroRemoteDataSourceImpl
-import com.example.coroutinesexample.data.model.SuperheroDataResponseDto
+import com.example.coroutinesexample.domain.model.Superheros
 
 class TaskRepositoryImpl : TaskRepository {
 
@@ -10,7 +10,7 @@ class TaskRepositoryImpl : TaskRepository {
     private val localTaskDataSource = DeviceLocalTaskDataSource()
 
     // remote task
-    override suspend fun getSuperhero(name: String): SuperheroDataResponseDto {
+    override suspend fun getSuperhero(name: String): Superheros {
         return superheroRemoteDataSourceImpl.getSuperheroByName(name)
     }
 

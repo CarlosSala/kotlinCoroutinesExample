@@ -42,7 +42,10 @@ class MainActivity : AppCompatActivity() {
                     binding.tvTask.text =
                         getString(R.string.heavy_task, uiState.heavyTask)
                     binding.tvServer.text =
-                        getString(R.string.server_response, uiState.responseServer)
+                        getString(
+                            R.string.server_response,
+                            uiState.superherosUi?.response.toString()
+                        )
                 }
             }
         }
@@ -84,9 +87,13 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.getSeveralSuperheroes.collect { result ->
-                    if (result != null) {
-                        customToast(result)
+                viewModel.getSeveralSuperheroes.collect { listSuperheroes ->
+                    if (listSuperheroes != null) {
+                        var text = ""
+                        listSuperheroes.forEachIndexed { index, superherosUi ->
+                            text += "${index + 1}. ${superherosUi.superheroes[index].name} "
+                        }
+                        customToast(text)
                     }
                 }
             }

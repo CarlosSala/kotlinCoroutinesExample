@@ -2,7 +2,7 @@ package com.example.coroutinesexample.data.model
 
 import com.google.gson.annotations.SerializedName
 
-data class SuperheroDataResponseDto(
+data class SuperheroDto(
     @SerializedName("response") val response: String,
     @SerializedName("results") val superheroes: List<SuperheroItemResponse>
 )

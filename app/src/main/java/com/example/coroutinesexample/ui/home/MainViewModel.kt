@@ -3,9 +3,11 @@ package com.example.coroutinesexample.ui.home
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.coroutinesexample.data.model.SuperheroDataResponseDto
+import com.example.coroutinesexample.domain.model.Superheros
 import com.example.coroutinesexample.domain.usecases.LocalTaskUseCase
 import com.example.coroutinesexample.domain.usecases.RemoteTaskUseCase
+import com.example.coroutinesexample.ui.mapper.toUiModel
+import com.example.coroutinesexample.ui.model.SuperherosUi
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -23,7 +25,7 @@ const val TAG = "MainViewModel"
 data class UiState(
     val loading: Boolean = false,
     val heavyTask: String? = null,
-    val responseServer: String? = null
+    val superherosUi: SuperherosUi? = null
 )
 
 // the viewModel only must be informed about what passed
@@ -41,8 +43,8 @@ class MainViewModel : ViewModel() {
     val loginEvent: SharedFlow<Boolean?> get() = _loginEvent
     private val _loginAsyncEvent = MutableSharedFlow<Boolean>()
     val loginAsyncEvent: SharedFlow<Boolean?> get() = _loginAsyncEvent
-    private val _getSeveralSuperheroes = MutableSharedFlow<String?>()
-    val getSeveralSuperheroes: SharedFlow<String?> get() = _getSeveralSuperheroes
+    private val _getSeveralSuperheroes = MutableSharedFlow<List<SuperherosUi>?>()
+    val getSeveralSuperheroes: SharedFlow<List<SuperherosUi>?> get() = _getSeveralSuperheroes
 
     fun localTask() {
         viewModelScope.launch {
@@ -63,13 +65,13 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             val response = try {
                 withContext(Dispatchers.IO) {
-                    remoteTaskUseCase(name).response
+                    remoteTaskUseCase(name)
                 }
             } catch (e: Exception) {
                 null
             }
             _uiState.update {
-                it.copy(responseServer = response.toString())
+                it.copy(superherosUi = response?.toUiModel())
             }
         }
     }
@@ -112,10 +114,10 @@ class MainViewModel : ViewModel() {
                         val response1 = deferred1.await()
                         val response2 = deferred2.await() */
 
-                    val deferreds: List<Deferred<SuperheroDataResponseDto>> = listOf(
-                        async { remoteTaskUseCase("batman") },
-                        async { remoteTaskUseCase("green") },
-                        async { remoteTaskUseCase("flash") }
+                    val deferreds: List<Deferred<SuperherosUi>> = listOf(
+                        async { remoteTaskUseCase("batman").toUiModel() },
+                        async { remoteTaskUseCase("green").toUiModel() },
+                        async { remoteTaskUseCase("flash").toUiModel() }
                     )
 
                     // wait for all request
@@ -124,12 +126,7 @@ class MainViewModel : ViewModel() {
             } catch (e: Exception) {
                 null
             }
-
-            var text = ""
-            response?.forEachIndexed { index, superheroDataResponseDto ->
-                text += "${index + 1}. ${superheroDataResponseDto.superheroes[index].name} "
-            }
-            _getSeveralSuperheroes.emit(text)
+            _getSeveralSuperheroes.emit(response)
         }
     }
 }
