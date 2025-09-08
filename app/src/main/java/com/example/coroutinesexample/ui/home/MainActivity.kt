@@ -28,7 +28,10 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        viewModel = ViewModelProvider(this)[MainViewModel::class.java]
+        val viewModelFactory = MainViewModelFactory()
+        viewModel = ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
+
+        // viewModel = ViewModelProvider(this)[MainViewModel::class.java]
 
         // extension function to load image with glide
         binding.iv.load(R.drawable.male_symbol, 200, 200)

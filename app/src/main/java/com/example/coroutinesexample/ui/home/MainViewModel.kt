@@ -2,7 +2,9 @@ package com.example.coroutinesexample.ui.home
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.coroutinesexample.data.util.DataComponents
 import com.example.coroutinesexample.domain.model.Superheros
 import com.example.coroutinesexample.domain.usecases.LocalTaskUseCase
 import com.example.coroutinesexample.domain.usecases.RemoteTaskUseCase
@@ -29,10 +31,11 @@ data class UiState(
 )
 
 // the viewModel only must be informed about what passed
-class MainViewModel : ViewModel() {
+class MainViewModel(
+    private val remoteTaskUseCase: RemoteTaskUseCase,
+    private val localTaskUseCase: LocalTaskUseCase
+) : ViewModel() {
 
-    private val remoteTaskUseCase = RemoteTaskUseCase()
-    private val localTaskUseCase = LocalTaskUseCase()
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> get() = _uiState
@@ -128,5 +131,20 @@ class MainViewModel : ViewModel() {
             }
             _getSeveralSuperheroes.emit(response)
         }
+    }
+}
+
+class MainViewModelFactory : ViewModelProvider.Factory {
+
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+
+            val taskRepository = DataComponents.taskRepository
+            val remoteTaskUseCase = RemoteTaskUseCase(taskRepository)
+            val localTaskUseCase = LocalTaskUseCase(taskRepository)
+
+            return MainViewModel(remoteTaskUseCase, localTaskUseCase) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
