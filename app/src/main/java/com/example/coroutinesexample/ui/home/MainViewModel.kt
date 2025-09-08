@@ -5,9 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.coroutinesexample.data.util.DataComponents
-import com.example.coroutinesexample.domain.model.Superheros
-import com.example.coroutinesexample.domain.usecases.LocalTaskUseCase
-import com.example.coroutinesexample.domain.usecases.RemoteTaskUseCase
+import com.example.coroutinesexample.domain.usecases.HeavyTaskUseCase
+import com.example.coroutinesexample.domain.usecases.GetSuperheroUseCase
 import com.example.coroutinesexample.ui.mapper.toUiModel
 import com.example.coroutinesexample.ui.model.SuperherosUi
 import kotlinx.coroutines.Deferred
@@ -24,24 +23,15 @@ import kotlinx.coroutines.withContext
 
 const val TAG = "MainViewModel"
 
-data class UiState(
-    val loading: Boolean = false,
-    val heavyTask: String? = null,
-    val superherosUi: SuperherosUi? = null
-)
-
-// the viewModel only must be informed about what passed
 class MainViewModel(
-    private val remoteTaskUseCase: RemoteTaskUseCase,
-    private val localTaskUseCase: LocalTaskUseCase
+    private val getSuperheroUseCase: GetSuperheroUseCase,
+    private val heavyTaskUseCase: HeavyTaskUseCase
 ) : ViewModel() {
-
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> get() = _uiState
 
-    // sharedFlow is a hot flow that can be shared among multiple consumers
-    // and is oriented to events
+    // sharedFlow is a hot flow that can be shared among multiple consumers and is oriented to events
     private val _loginEvent = MutableSharedFlow<Boolean>()
     val loginEvent: SharedFlow<Boolean?> get() = _loginEvent
     private val _loginAsyncEvent = MutableSharedFlow<Boolean>()
@@ -49,11 +39,11 @@ class MainViewModel(
     private val _getSeveralSuperheroes = MutableSharedFlow<List<SuperherosUi>?>()
     val getSeveralSuperheroes: SharedFlow<List<SuperherosUi>?> get() = _getSeveralSuperheroes
 
-    fun localTask() {
+    fun performHeavyTask() {
         viewModelScope.launch {
             val resultHeavyTask = try {
                 withContext(Dispatchers.IO) {
-                    localTaskUseCase.localTask()
+                    heavyTaskUseCase.heavyTask()
                 }
             } catch (e: Exception) {
                 // Handle error, maybe update another StateFlow for error messages
@@ -64,11 +54,11 @@ class MainViewModel(
         }
     }
 
-    fun remoteTask(name: String) {
+    fun getSuperhero(name: String) {
         viewModelScope.launch {
             val response = try {
                 withContext(Dispatchers.IO) {
-                    remoteTaskUseCase(name)
+                    getSuperheroUseCase(name)
                 }
             } catch (e: Exception) {
                 null
@@ -81,13 +71,12 @@ class MainViewModel(
 
     fun validateLogin(user: String, pass: String) {
         viewModelScope.launch {
-            // Log.i(TAG, "Current Thread: ${Thread.currentThread().name}")
-            // withContext is a suspend function
+            Log.i(TAG, "Current Thread: ${Thread.currentThread().name}")
             val resultLogin = withContext(context = Dispatchers.IO) {
-                // Log.i(TAG, "Current Thread: ${Thread.currentThread().name.toEditable()}")
+                Log.i(TAG, "Current Thread: ${Thread.currentThread().name}")
                 delayLogin(user = user, pass = pass)
             }
-            _loginEvent.emit(resultLogin)
+            _loginEvent.emit(value = resultLogin)
         }
     }
 
@@ -96,33 +85,26 @@ class MainViewModel(
         return user.isNotEmpty() && pass.isNotEmpty()
     }
 
+    // To use parallelism with async and await, it's important throw all async functions before await
     fun validateAsyncLogin(user: String, pass: String) {
         viewModelScope.launch {
             val deferredResultOne = async(context = Dispatchers.IO) { delayLogin(user, pass) }
             val deferredResultTwo = async(context = Dispatchers.IO) { delayLogin(user, pass) }
             val resultOne = deferredResultOne.await()
             val resultTwo = deferredResultTwo.await()
-            _loginAsyncEvent.emit(resultOne && resultTwo)
+            _loginAsyncEvent.emit(value = resultOne && resultTwo)
         }
     }
 
     fun getSeveralSuperheroes() {
         viewModelScope.launch {
-
             val response = try {
                 withContext(Dispatchers.IO) {
-
-                    /*  val deferred1 = async { getServerResponse("batman") }
-                        val deferred2 = async { getServerResponse("superman") }
-                        val response1 = deferred1.await()
-                        val response2 = deferred2.await() */
-
                     val deferreds: List<Deferred<SuperherosUi>> = listOf(
-                        async { remoteTaskUseCase("batman").toUiModel() },
-                        async { remoteTaskUseCase("green").toUiModel() },
-                        async { remoteTaskUseCase("flash").toUiModel() }
+                        async { getSuperheroUseCase("batman").toUiModel() },
+                        async { getSuperheroUseCase("green").toUiModel() },
+                        async { getSuperheroUseCase("flash").toUiModel() }
                     )
-
                     // wait for all request
                     deferreds.awaitAll()
                 }
@@ -135,15 +117,14 @@ class MainViewModel(
 }
 
 class MainViewModelFactory : ViewModelProvider.Factory {
-
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
 
             val taskRepository = DataComponents.taskRepository
-            val remoteTaskUseCase = RemoteTaskUseCase(taskRepository)
-            val localTaskUseCase = LocalTaskUseCase(taskRepository)
-
-            return MainViewModel(remoteTaskUseCase, localTaskUseCase) as T
+            val getSuperheroUseCase = GetSuperheroUseCase(taskRepository)
+            val heavyTaskUseCase = HeavyTaskUseCase(taskRepository)
+            @Suppress("UNCHECKED_CAST")
+            return MainViewModel(getSuperheroUseCase, heavyTaskUseCase) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">CoroutinesExample</string>
     <string name="hello_world">Hello world, %1$s</string>
-    <string name="login_one">Longin - one coroutine</string>
-    <string name="login_two">Longin - two coroutines</string>
-    <string name="login_three">Longin - three view model</string>
+    <string name="login_one">Validate Log in</string>
+    <string name="login_two">Validate Async Log in</string>
+    <string name="login_three">Get several superheroes</string>
     <string name="you">you</string>
     <string name="todo">todo</string>
     <string name="server_response">Status server response: %1$s</string>

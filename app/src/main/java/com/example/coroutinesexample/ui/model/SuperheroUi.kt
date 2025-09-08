@@ -9,8 +9,7 @@ data class SuperheroItemUi(
     val superheroId: String,
     val name: String,
     val image: SuperheroImageUi,
-
-    )
+)
 
 data class SuperheroImageUi(
     val url: String,

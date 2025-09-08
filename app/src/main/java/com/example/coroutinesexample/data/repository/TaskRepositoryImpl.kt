@@ -1,13 +1,11 @@
 package com.example.coroutinesexample.data.repository
 
-import com.example.coroutinesexample.data.datasource.local.DeviceLocalTaskDataSource
-import com.example.coroutinesexample.data.datasource.local.LocalTaskDataSource
+import com.example.coroutinesexample.data.datasource.local.HeavyTaskDataSource
 import com.example.coroutinesexample.data.datasource.remote.SuperheroRemoteDataSource
-import com.example.coroutinesexample.data.datasource.remote.SuperheroRemoteDataSourceImpl
 import com.example.coroutinesexample.domain.model.Superheros
 
 class TaskRepositoryImpl(
-    private val localTaskDataSource: LocalTaskDataSource,
+    private val heavyTaskDataSource: HeavyTaskDataSource,
     private val superheroRemoteDataSourceImpl: SuperheroRemoteDataSource
 ) : TaskRepository {
 
@@ -17,7 +15,7 @@ class TaskRepositoryImpl(
     }
 
     // local task
-    override fun localTask(): String {
-        return localTaskDataSource.performLocalTask()
+    override fun heavyTask(): String {
+        return heavyTaskDataSource.performHeavyTask()
     }
 }

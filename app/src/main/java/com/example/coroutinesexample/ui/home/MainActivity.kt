@@ -19,8 +19,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel: MainViewModel
     private lateinit var binding: ActivityMainBinding
-    private var etUser: String = "et user"
-    private var etPass: String = "et pass"
+    private var etUser: String = ""
+    private var etPass: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,15 +31,12 @@ class MainActivity : AppCompatActivity() {
         val viewModelFactory = MainViewModelFactory()
         viewModel = ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
 
-        // viewModel = ViewModelProvider(this)[MainViewModel::class.java]
-
         // extension function to load image with glide
         binding.iv.load(R.drawable.male_symbol, 200, 200)
 
-        // these flow is collected since the app is started
+        // repeatOnLifecycle launches the block in a new coroutine every time the
+        // lifecycle is in the STARTED state (or above) and cancels it when it's STOPPED.
         lifecycleScope.launch {
-            // repeatOnLifecycle launches the block in a new coroutine every time the
-            // lifecycle is in the STARTED state (or above) and cancels it when it's STOPPED.
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { uiState ->
                     binding.tvTask.text =
@@ -53,16 +50,15 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // this flow is collected only when login is successful
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.loginEvent.collect { result ->
                     if (result != null) {
                         customToast(if (result) "Success" else "Failure")
-                        binding.etUsername.setText("")
-                        binding.etPassword.setText("")
                     }
                     if (result == true) {
+                        binding.etUsername.setText("")
+                        binding.etPassword.setText("")
                         val intent = Intent(this@MainActivity, ResultActivity::class.java)
                         intent.putExtra("EXTRA_NAME", etUser)
                         startActivity(intent)
@@ -76,10 +72,10 @@ class MainActivity : AppCompatActivity() {
                 viewModel.loginAsyncEvent.collect { result ->
                     if (result != null) {
                         customToast(if (result) "Success" else "Failure")
-                        binding.etUsername.setText("")
-                        binding.etPassword.setText("")
                     }
                     if (result == true) {
+                        binding.etUsername.setText("")
+                        binding.etPassword.setText("")
                         val intent = Intent(this@MainActivity, ResultActivity::class.java)
                         intent.putExtra("EXTRA_NAME", etUser)
                         startActivity(intent)
@@ -105,19 +101,16 @@ class MainActivity : AppCompatActivity() {
         // init ui listener
         initListener()
 
-        viewModel.localTask()
-        viewModel.remoteTask("superman")
+        viewModel.performHeavyTask()
+        viewModel.getSuperhero("superman")
     }
 
     private fun initListener() {
 
-        // login one coroutine
         binding.btnLogin.setOnClickListener {
 
             etUser = binding.etUsername.text.toString()
             etPass = binding.etPassword.text.toString()
-
-            // Log.i("current thread", Thread.currentThread().name.toEditable().toString())
             viewModel.validateLogin(user = etUser, pass = etPass)
         }
 
@@ -126,7 +119,6 @@ class MainActivity : AppCompatActivity() {
 
             etUser = binding.etUsername.text.toString()
             etPass = binding.etPassword.text.toString()
-
             viewModel.validateAsyncLogin(user = etUser, pass = etPass)
         }
 

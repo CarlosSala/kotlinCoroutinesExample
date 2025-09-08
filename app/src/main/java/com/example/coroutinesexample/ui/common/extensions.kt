@@ -1,7 +1,6 @@
 package com.example.coroutinesexample.ui.common
 
 import android.content.Context
-import android.text.Editable
 import android.widget.ImageView
 import android.widget.Toast
 import com.bumptech.glide.Glide
