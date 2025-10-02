@@ -2,9 +2,9 @@ package com.example.coroutinesexample.ui.home
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.coroutinesexample.R
@@ -12,12 +12,13 @@ import com.example.coroutinesexample.databinding.ActivityMainBinding
 import com.example.coroutinesexample.ui.common.customToast
 import com.example.coroutinesexample.ui.common.load
 import com.example.coroutinesexample.ui.detail.ResultActivity
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
-
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var viewModel: MainViewModel
+    private val viewModel: MainViewModel by viewModels()
     private lateinit var binding: ActivityMainBinding
     private var etUser: String = ""
     private var etPass: String = ""
@@ -27,9 +28,6 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        val viewModelFactory = MainViewModelFactory()
-        viewModel = ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
 
         // extension function to load image with glide
         binding.iv.load(R.drawable.male_symbol, 200, 200)

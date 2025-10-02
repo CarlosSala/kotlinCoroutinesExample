@@ -6,12 +6,12 @@ import com.example.coroutinesexample.domain.model.Superheros
 
 class TaskRepositoryImpl(
     private val heavyTaskDataSource: HeavyTaskDataSource,
-    private val superheroRemoteDataSourceImpl: SuperheroRemoteDataSource
+    private val superheroRemoteDataSource: SuperheroRemoteDataSource
 ) : TaskRepository {
 
     // remote task
     override suspend fun getSuperhero(name: String): Superheros {
-        return superheroRemoteDataSourceImpl.getSuperheroByName(name)
+        return superheroRemoteDataSource.getSuperheroByName(name)
     }
 
     // local task

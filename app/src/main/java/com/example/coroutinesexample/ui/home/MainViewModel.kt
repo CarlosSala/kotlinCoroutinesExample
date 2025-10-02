@@ -4,11 +4,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.coroutinesexample.data.util.DataComponents
 import com.example.coroutinesexample.domain.usecases.HeavyTaskUseCase
 import com.example.coroutinesexample.domain.usecases.GetSuperheroUseCase
 import com.example.coroutinesexample.ui.mapper.toUiModel
 import com.example.coroutinesexample.ui.model.SuperherosUi
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -20,10 +20,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 const val TAG = "MainViewModel"
 
-class MainViewModel(
+@HiltViewModel
+class MainViewModel @Inject constructor(
     private val getSuperheroUseCase: GetSuperheroUseCase,
     private val heavyTaskUseCase: HeavyTaskUseCase
 ) : ViewModel() {
@@ -113,19 +115,5 @@ class MainViewModel(
             }
             _getSeveralSuperheroes.emit(response)
         }
-    }
-}
-
-class MainViewModelFactory : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-
-            val taskRepository = DataComponents.taskRepository
-            val getSuperheroUseCase = GetSuperheroUseCase(taskRepository)
-            val heavyTaskUseCase = HeavyTaskUseCase(taskRepository)
-            @Suppress("UNCHECKED_CAST")
-            return MainViewModel(getSuperheroUseCase, heavyTaskUseCase) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
